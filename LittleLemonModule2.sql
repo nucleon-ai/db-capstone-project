@@ -79,3 +79,69 @@ DELIMITER ;
 
 CALL CancelOrder(1105);
 
+
+-- Third Exercise
+-- Task 1
+
+INSERT INTO `bookings` (`BookingID`, `BookingDate`, `TableNumber`, `CustomerID`)
+VALUES
+('1','2022-10-10','5','1'),
+('2','2022-11-12','3','3'),
+('3','2022-10-11','2','2'),
+('4','2022-10-13','2','1');
+
+
+
+-- Task 2
+
+DELIMITER //
+CREATE PROCEDURE CheckBooking (IN bkgDate DATE, IN tblNumber CHAR(1))
+BEGIN
+    SET @tabCount = (
+        SELECT COUNT(*) FROM bookings
+        WHERE TableNumber = tblNumber
+            AND BookingDate = bkgDate
+    );
+
+    IF @tabCount = 0 THEN
+        SELECT CONCAT('Table ', tblNumber, ' is not booked') AS `Booking status`;
+    ELSE
+        SELECT CONCAT('Table ', tblNumber, ' is already booked') AS `Booking status`;
+    END IF;
+
+END//
+DELIMITER ;
+
+
+CALL CheckBooking('2022-10-13', '1');
+
+
+-- Task 3
+
+DELIMITER //
+CREATE PROCEDURE AddValidBooking(IN bkgDate DATE, IN tblNumber CHAR(1))
+BEGIN
+    SET @tabCount = (
+        SELECT COUNT(*) FROM bookings
+        WHERE TableNumber = tblNumber
+            AND BookingDate = bkgDate
+    );
+
+    START TRANSACTION;
+
+    INSERT INTO bookings (BookingDate, TableNumber)
+    VALUES (bkgDate, tblNumber);
+
+    IF @tabCount > 0 THEN
+        ROLLBACK;
+        SELECT CONCAT('Table ', tblNumber, ' is already booked - booking cancelled') AS `Booking status`;
+    ELSE
+        COMMIT;
+        SELECT CONCAT('Table ', tblNumber, ' is booked successfully') AS `Booking status`;
+    END IF;
+
+END//
+DELIMITER ;
+
+
+CALL AddValidBooking('2022-10-13', '2');
